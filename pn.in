@@ -1,0 +1,59 @@
+# PNJ
+go atlas simflags="-P 18"
+mesh space.mult=1.0
+# metal
+x.mesh loc=-0.1 spac=0.05
+x.mesh loc=0.0  spac=0.005
+x.mesh loc=0.1  spac=0.005
+x.mesh loc=0.25 spac=0.35
+x.mesh loc=0.5  spac=0.005
+x.mesh loc=0.75 spac=0.35
+x.mesh loc=0.9  spac=0.005
+x.mesh loc=1.0  spac=0.005
+x.mesh loc=1.1  spac=0.05
+
+y.mesh loc=0.0  spac=0.35
+y.mesh loc=1.0  spac=0.35
+
+region number=1 x.min=-0.1 x.max=0.0 y.min=0 y.max=1 material=Aluminum
+region number=2 x.min=0.1  x.max=0.5 y.min=0 y.max=1 material=Silicon
+region number=3 x.min=0.5  x.max=0.9 y.min=0 y.max=1 material=Silicon
+region number=4 x.min=1.0  x.max=1.1 y.min=0 y.max=1 material=Aluminum
+region number=5 x.min=0.0  x.max=0.1 y.min=0 y.max=1 material=Silicon
+region number=6 x.min=0.9  x.max=1.0 y.min=0 y.max=1 material=Silicon
+
+electrode reg=1 name=anode
+electrode reg=4 name=cathode
+
+doping uniform conc=5e16    n.type x.left=0.1 x.right=0.5 y.top=0 y.bottom=1 direction=y
+doping uniform conc=1e16    n.type x.left=0.5 x.right=0.9 y.top=0 y.bottom=1 direction=y
+doping uniform conc=7.5e17  n.type x.left=0.0 x.right=0.1 y.top=0 y.bottom=1 direction=y
+doping uniform conc=1.5e17  n.type x.left=0.9 x.right=1.0 y.top=0 y.bottom=1 direction=y
+
+save outf=q1_metric_pnj.str
+
+quit
+
+
+# PNJ testing
+go atlas simflags="-P 19"
+mesh inf=q1_metric_pnj.str
+model bipolar
+contact name=anode   aluminum
+contact name=cathode aluminum
+
+solve init
+
+output charge val.band con.band qfn qfp e.field
+save outf=q1_part2_pnj.str
+
+
+method newton gummel itlimit=300 maxtraps=4
+solve init
+solve vanode=0.0
+
+log outf=IV_pnj.log
+solve vcathode=-0.5 vstep=0.05 vfinal=0.5 name=cathode
+log off
+
+quit
